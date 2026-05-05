@@ -171,25 +171,40 @@ def color_marco(idx, ejecucion, bloqueados, suspendidos):
     return C_LISTO
 
 def mapa_memoria_compacto(ejecucion, bloqueados, suspendidos):
-    """Devuelve el mapa en dos columnas de 22 marcos, formato muy compacto."""
+    """Devuelve el mapa en dos columnas de 22 marcos, con etiquetas de SO corregidas."""
     lineas = []
-    lineas.append(f" MEM(48 marcos×5)  Libres:{len(marcos_libres_lista())}/{MARCOS_USUARIO}")
-    for row in range(22):
+    lineas.append(
+        f" MEM(48 marcos×5) Libres:{len(marcos_libres_lista())}/{MARCOS_USUARIO}")
+
+    for row in range(24):
         izq = row
-        der = row + 22
+        der = row + 24
 
         def celda(idx):
-            color = color_marco(idx, ejecucion, bloqueados, suspendidos)
-            pid   = marcos[idx]
+            if idx >= MARCOS_USUARIO:
+                color = C_SO
+            else:
+                pid = marcos[idx]
+                if pid is None:
+                    color = C_RESET
+                elif ejecucion and pid == ejecucion.id:
+                    color = C_EJECUCION
+                elif any(p.id == pid for p in bloqueados):
+                    color = C_BLOQUEADO
+                else:
+                    color = C_LISTO
+
+            pid = marcos[idx]
             if idx >= MARCOS_USUARIO:
                 lbl = "SO"
             elif pid is None:
                 lbl = "--"
             else:
                 lbl = f"P{pid}"
+
             return f"{color}[{idx:>2}]{lbl:<4}{C_RESET}"
 
-        lineas.append(f" {celda(izq)}  {celda(der)}")
+        lineas.append(f" {celda(izq)} {celda(der)}")
     return lineas
 
 # ─────────────────────────────────────────────────────────────────────
